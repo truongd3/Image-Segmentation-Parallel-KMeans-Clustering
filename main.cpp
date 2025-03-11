@@ -3,98 +3,77 @@
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include "components/Point.h"
+#include "kmeans.h"
 
 using namespace std;
 
-vector<Point> readcsv(string filePath) {
+vector<Point> readcsv(const string& filePath) {
     vector<Point> points;
-    string line;
     ifstream file(filePath);
 
+    string line;
     while (getline(file, line)) {
         stringstream lineStream(line);
         string bit;
+
         double x, y;
-        getline(lineStream, bit, ',');
-        x = stof(bit);
-        getline(lineStream, bit, '\n');
-        y = stof(bit);
+        if (getline(lineStream, bit, ',')) x = stof(bit);
+        if (getline(lineStream, bit, '\n')) y = stof(bit);
 
         points.push_back(Point(x, y));
     }
     return points;
 }
 
-/**
- * Perform k-means clustering
- * @param points - pointer to vector of points
- * @param epochs - number of k means iterations
- * @param k - the number of initial centroids
- */
-void kMeansClustering(vector<Point>* points, int epochs, int k) {
-    int n = points->size();
+int epochs = 0; // Number of epochs
+int k = 0;      // Number of clusters
 
-    // Randomly initialise centroids
-    // The index of the centroid within the centroids vector represents the cluster label.
-    vector<Point> centroids;
-    srand(time(0));
-    for (int i = 0; i < k; i++) centroids.push_back(points->at(rand() % n));
-
-    for (int i = 0; i < epochs; ++i) {
-        // For each centroid, compute distance from centroid to each point and update point's cluster if necessary
-        for (vector<Point>::iterator c = begin(centroids); c != end(centroids); c++) {
-            int clusterId = c - begin(centroids);
-
-            for (vector<Point>::iterator it = points->begin(); it != points->end(); it++) {
-                Point p = *it;
-                double dist = c->distance(p);
-                if (dist < p.getMinDist()) {
-                    p.setMinDist(dist);
-                    p.setCluster(clusterId);
-                }
-                *it = p;
-            }
-        }
-
-        // Create vectors to keep track of data needed to compute means
-        vector<int> nPoints;
-        vector<double> sumX, sumY;
-        for (int j = 0; j < k; ++j) {
-            nPoints.push_back(0);
-            sumX.push_back(0.0);
-            sumY.push_back(0.0);
-        }
-
-        // Iterate over points to append data to centroids
-        for (vector<Point>::iterator it = points->begin(); it != points->end(); it++) {
-            int clusterId = (*it).getCluster();
-            nPoints[clusterId] += 1;
-            sumX[clusterId] += (*it).getX();
-            sumY[clusterId] += (*it).getY();
-
-            (*it).setMinDist(__DBL_MAX__);  // reset distance
-        }
-        // Compute the new centroids
-        for (vector<Point>::iterator c = begin(centroids); c != end(centroids); c++) {
-            int clusterId = c - begin(centroids);
-            (*c).setX(sumX[clusterId] / nPoints[clusterId]);
-            (*c).setY(sumY[clusterId] / nPoints[clusterId]);
-        }
+int main(int argc, char *argv[]) { // ./main <epochs> <k>
+    srand(23);
+    
+    if (argc == 3) {
+        epochs = stoi(argv[1]);
+        k = stoi(argv[2]);
+    } else {
+        cerr << "Usage: ./main <epochs> <k>" << endl;
+        return 1;
     }
 
-    // Write to csv
-    ofstream myfile;
-    myfile.open("output.csv");
-    myfile << "x,y,c" << endl;
+    vector<Point> points = readcsv("db/input.csv");
+    int n = points.size();
 
-    for (vector<Point>::iterator it = points->begin(); it != points->end(); it++) {
-        myfile << (*it).getX() << "," << (*it).getY() << "," << (*it).getCluster() << endl;
+    if (n == 0 || k <= 0) {
+        cerr << "Invalid dataset or cluster count." << endl;
+        return 1;
     }
-    myfile.close();
-}
 
-int main() {
-    vector<Point> points = readcsv("db/points.csv");
-    kMeansClustering(&points, 100, 5);
+    vector<Cluster> clusters;
+    // Initialize k random points as centers of clusters
+    for (int i = 0; i < k; ++i) {
+        clusters.push_back(Cluster(i, points[rand() % n]));
+    }
+
+    // Run K-Means algorithm
+    for (int epoch = 0; epoch < epochs; ++epoch) {
+        for (auto &cluster : clusters) {
+            cluster.clearPoints();
+        }
+
+        assignClusters(points, clusters);
+        updateClusters(clusters);
+    }
+
+    cout << "Final cluster centers:\n";
+    for (const auto& cluster : clusters) {
+        cout << "Cluster " << cluster.getCenter().getX() << ", " << cluster.getCenter().getY() << endl;
+    }
+
+    // Predict clusters for the input points
+    vector<int> predictions = predictClusters(points, clusters);
+    cout << "\nPoint assignments:\n";
+    for (size_t i = 0; i < points.size(); ++i) {
+        cout << "Point (" << points[i].getX() << ", " << points[i].getY() << ") -> Cluster " << predictions[i] << endl;
+    }
+
+    return 0;
 }
