@@ -29,10 +29,10 @@ void updateClusters(vector<Cluster>& clusters) {
     }
 }
 
-vector<int> predictClusters(vector<Point>& points, vector<Cluster>& clusters) {
+vector<int> predictClusters(const vector<Point>& points, const vector<Cluster>& clusters) {
     vector<int> predictions;
 
-    for (auto& point : points) {
+    for (const auto& point : points) {
         vector<double> dist;
 
         // Calculate the distance from the point to each cluster center

@@ -16,11 +16,12 @@ vector<Point> readcsv(const string& filePath) {
         stringstream lineStream(line);
         string bit;
 
-        double x, y;
+        double x, y, z;
         if (getline(lineStream, bit, ',')) x = stof(bit);
-        if (getline(lineStream, bit, '\n')) y = stof(bit);
+        if (getline(lineStream, bit, ',')) y = stof(bit);
+        if (getline(lineStream, bit, '\n')) z = stod(bit);
 
-        points.push_back(Point(x, y));
+        points.push_back(Point(x, y, z));
     }
     return points;
 }
@@ -65,14 +66,18 @@ int main(int argc, char *argv[]) { // ./main <epochs> <k>
 
     cout << "Final cluster centers:\n";
     for (const auto& cluster : clusters) {
-        cout << "Cluster " << cluster.getCenter().getX() << ", " << cluster.getCenter().getY() << endl;
+        cout << "Cluster: " << cluster.getCenter().getX() << ", " 
+                            << cluster.getCenter().getY() << ", " 
+                            << cluster.getCenter().getZ() << endl;
     }
 
     // Predict clusters for the input points
     vector<int> predictions = predictClusters(points, clusters);
     cout << "\nPoint assignments:\n";
     for (size_t i = 0; i < points.size(); ++i) {
-        cout << "Point (" << points[i].getX() << ", " << points[i].getY() << ") -> Cluster " << predictions[i] << endl;
+        cout << "Point (" << points[i].getX() << ", " 
+                          << points[i].getY() << ", "
+                          << points[i].getZ() << ") -> Cluster " << predictions[i] << endl;
     }
 
     return 0;
