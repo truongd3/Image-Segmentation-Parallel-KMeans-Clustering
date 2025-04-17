@@ -1,14 +1,26 @@
-# Dependencies
-- gcc 12
-- CUDA toolkit 12
+# 🖼️ Image Segmentation
 
-# Installation
-...
+---
 
-# How to Run
+## 🛠️ Building the Project
 
-> April 7th, 2025
-> - Run `python main.py` to create mock data
-> - Open a new terminal
-> - Complie `g++ std=c++12 main.cpp -o main`
-> - Run `main <epochs> <clusters>`
+1. **Make sure OpenCV is installed**  
+   Ensure OpenCV is installed on your system via your package manager (`apt`, `brew`, `vcpkg`, etc.), or build it from source.
+
+2. **Create a build directory and run CMake:**
+
+   ```bash
+   mkdir build
+   cd build
+   cmake ..
+   cmake --build .
+   ```
+
+3. **Run the executable**
+
+   - Serial version: `build/seg_cpu`  
+   - Usage:
+
+     ```bash
+     ./seg_cpu <input-image> <num-clusters> <output-image>
+     ```
