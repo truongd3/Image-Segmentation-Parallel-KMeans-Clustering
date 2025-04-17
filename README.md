@@ -1,4 +1,3 @@
-```markdown
 # 🖼️ Image Segmentation
 
 ---
@@ -25,4 +24,3 @@
      ```bash
      ./seg_cpu <input-image> <num-clusters> <output-image>
      ```
-```
