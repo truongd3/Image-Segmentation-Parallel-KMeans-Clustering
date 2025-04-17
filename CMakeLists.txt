@@ -16,7 +16,12 @@ include_directories(
 )
 
 # Version 1: CPU-only executable
-add_executable(seg_cpu src/serial/main_serial.cpp src/common/image_utils.cpp)
+add_executable(seg_cpu 
+    src/serial/main_serial.cpp 
+    src/common/image_utils.cpp
+    src/serial/img_seg_serial.cpp
+    src/serial/kmeans.cpp
+)
 
 target_link_libraries( seg_cpu ${OpenCV_LIBS} )
 
