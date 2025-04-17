@@ -8,7 +8,7 @@ std::vector<cv::Vec3f> loadImage(const std::string &image_path,
                                  cv::Mat &img_float, int &num_rows) {
     cv::Mat image = cv::imread(image_path);
     if (image.empty()) {
-        std::cout << "Image Empty\n";
+        std::cerr << "Image Empty\n";
         throw std::runtime_error("Failed to load image: " + image_path);
     }
     num_rows = image.rows;
