@@ -1,6 +1,1 @@
-.vscode
-main
-Point
-Cluster
-kmeans
-tempCodeRunnerFile.py
+build/
