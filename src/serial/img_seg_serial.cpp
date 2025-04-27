@@ -1,16 +1,16 @@
-#include "common/image_utils.hpp"
 #include "serial/img_seg_serial.hpp"
+#include "common/image_utils.hpp"
 #include "serial/kmeans.hpp"
 #include <opencv2/opencv.hpp>
 
 namespace serial {
-bool imgSeg(const std::string &image_path, int k,
-            const std::string &output_path) {
+bool imgSeg(const std::string& image_path, int k,
+            const std::string& output_path) {
     cv::Mat img_float;
     int num_rows{0};
 
-    std::vector<cv::Vec3f> pixels =
-        image_utils::loadImage(image_path, img_float, num_rows);
+    std::vector<cv::Vec3f> pixels
+        = image_utils::loadImage(image_path, img_float, num_rows);
 
     std::vector<int> labels;
     serial::Kmeans kmeans(k);

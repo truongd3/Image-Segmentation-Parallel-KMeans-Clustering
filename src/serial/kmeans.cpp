@@ -5,13 +5,13 @@ namespace serial {
 Kmeans::Kmeans(int num_clusters, int max_iterations, double tol)
     : k(num_clusters), max_iters(max_iterations), tol(tol) {}
 
-double Kmeans::sqDist(const cv::Vec3f &a, const cv::Vec3f &b) {
+double Kmeans::sqDist(const cv::Vec3f& a, const cv::Vec3f& b) {
     cv::Vec3f diff = a - b;
     return diff.dot(diff);
 }
 
-void Kmeans::fit(const std::vector<cv::Vec3f> &points,
-                 std::vector<int> &labels) {
+void Kmeans::fit(const std::vector<cv::Vec3f>& points,
+                 std::vector<int>& labels) {
     size_t n_points = points.size();
     labels.resize(n_points, 0);
 
@@ -71,6 +71,6 @@ void Kmeans::fit(const std::vector<cv::Vec3f> &points,
     }
 }
 
-const std::vector<cv::Vec3f> &Kmeans::getCenters() const { return centers; }
+const std::vector<cv::Vec3f>& Kmeans::getCenters() const { return centers; }
 
 } // namespace serial

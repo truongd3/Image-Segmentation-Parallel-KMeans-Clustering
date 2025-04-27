@@ -1,9 +1,10 @@
 #include "serial/img_seg_serial.hpp"
 #include <iostream>
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     if (argc < 4) {
-        std::cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>" << '\n';
+        std::cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>"
+                  << '\n';
         return 1;
     }
     std::string image_path = argv[1];
