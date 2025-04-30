@@ -1,6 +1,9 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include <random>
+#include <limits>
+#include <cmath>
 
 using namespace std;
 

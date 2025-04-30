@@ -1,9 +1,5 @@
 #include "mpi/kmeans.hpp"
 #include <mpi.h>
-#include <vector>
-#include <random>
-#include <limits>
-#include <cmath>
 
 using namespace std;
 
@@ -32,6 +28,7 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
         uniform_int_distribution<int> dist(0, N - 1);
         for (int j = 0; j < k; ++j) centers[j] = points[dist(rng)];
     }
+
     // Broadcast initial centers
     MPI_Bcast(centers.data(), k * 3, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
@@ -41,7 +38,7 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
     vector<int> local_counts(k);
     vector<int> global_counts(k);
 
-    for (int iter = 0; iter < max_iters; ++iter) {
+    for (int iter = 0; iter < max_iters; iter++) {
         for (int j = 0; j < k; ++j) { // Reset accumulators
             local_sums[j] = cv::Vec3f(0, 0, 0);
             local_counts[j] = 0;
@@ -81,7 +78,6 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
         centers = new_centers;
         MPI_Bcast(centers.data(), k * 3, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-        
         if (sqrt(max_shift2) < tol) break;
     }
 
@@ -91,6 +87,6 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
     labels = std::move(global_labels);
 }
 
-const std::vector<cv::Vec3f> &Kmeans::getCenters() const { return centers; }
+const vector<cv::Vec3f> &Kmeans::getCenters() const { return centers; }
 
 } // namespace mpi
