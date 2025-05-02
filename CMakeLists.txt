@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.27)
 
-project(image_segmentation          # <— call it whatever you like
+project(image_segmentation          
         VERSION 1.0
-
-        LANGUAGES CXX CUDA)         # CUDA is optional until we actually enable it
+        LANGUAGES CXX CUDA)         
 
 # ────────────────────────────── Global settings ──────────────────────────────
 # Make CMake put -I flags on the command-line instead of in a response file
@@ -13,13 +12,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_ARCHITECTURES 50)
 
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)          # <— gives clangd compile DB
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)          
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/lib)
 
 find_package(OpenCV REQUIRED)
-# Headers that live in include/**
 include_directories(
     ${OpenCV_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/include
@@ -40,6 +38,7 @@ option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  OFF)
 # ────────────────────────────── Common helper library ────────────────────────
 add_library(common
     src/common/image_utils.cpp
+    src/common/kmeans_utils.cpp
 )
 target_include_directories(common
     PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -58,11 +57,10 @@ endif()
 # ────────────────────────────── CUDA-only build ──────────────────────────────
 
 if(BUILD_CUDA)
-    enable_language(CUDA)   # turns CUDA on only if we actually need it
+    enable_language(CUDA)   
     add_executable(img_seg_gpu
         src/gpu/main_gpu.cpp
         src/gpu/img_seg_gpu.cu
-        src/common/kmeans_utils.cpp
     )
     target_link_libraries(img_seg_gpu PRIVATE common ${OpenCV_LIBS})
     set_target_properties(img_seg_gpu PROPERTIES
@@ -75,9 +73,11 @@ endif()
 if(BUILD_MPI)
     find_package(MPI REQUIRED COMPONENTS C CXX)
     add_executable(img_seg_mpi
-        src/mpi/main_mpi.cpp     # placeholder -- add real sources as you create them
+        src/mpi/main_mpi.cpp     
+        src/mpi/img_seg_mpi.cpp
+        src/mpi/kmeans.cpp
     )
-    target_link_libraries(img_seg_mpi PRIVATE MPI::MPI_CXX common)
+    target_link_libraries(img_seg_mpi PRIVATE MPI::MPI_CXX common ${OpenCV_LIBS})
 endif()
 
 # ────────────────────────────── MPI + CUDA build ─────────────────────────────
@@ -92,13 +92,3 @@ if(BUILD_MPI_CUDA)
 
 endif()
 
-# ────────────────────────────── MPI + CUDA build ─────────────────────────────
-# if(BUILD_MPI_CUDA)
-#     enable_language(CUDA)
-#     find_package(MPI REQUIRED COMPONENTS C CXX)
-#     add_executable(img_seg_mpi_cuda
-#         src/mpi_cuda/main_mpi_cuda.cu   # placeholder
-#     )
-#     target_link_libraries(img_seg_mpi_cuda PRIVATE MPI::MPI_CXX common)
-#     set_target_properties(img_seg_mpi_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
-# endif()
