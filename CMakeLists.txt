@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.27)
 
 project(image_segmentation          # <— call it whatever you like
         VERSION 1.0
+
         LANGUAGES CXX CUDA)         # CUDA is optional until we actually enable it
 
 # ────────────────────────────── Global settings ──────────────────────────────
@@ -10,6 +11,7 @@ set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_ARCHITECTURES 50)
+
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)          # <— gives clangd compile DB
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/bin)
@@ -23,6 +25,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/include
 )
 
+
 include_directories(SYSTEM
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
 )
@@ -32,6 +35,7 @@ option(BUILD_SERIAL    "CPU-only implementation"           OFF)
 option(BUILD_CUDA      "Pure-CUDA implementation"          ON)
 option(BUILD_MPI       "MPI implementation"                OFF)
 option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  OFF)
+
 
 # ────────────────────────────── Common helper library ────────────────────────
 add_library(common
@@ -52,6 +56,7 @@ if(BUILD_SERIAL)
 endif()
 
 # ────────────────────────────── CUDA-only build ──────────────────────────────
+
 if(BUILD_CUDA)
     enable_language(CUDA)   # turns CUDA on only if we actually need it
     add_executable(img_seg_gpu
@@ -84,5 +89,16 @@ if(BUILD_MPI_CUDA)
     )
     target_link_libraries(img_seg_mpi_cuda PRIVATE MPI::MPI_CXX common)
     set_target_properties(img_seg_mpi_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
 endif()
 
+# ────────────────────────────── MPI + CUDA build ─────────────────────────────
+# if(BUILD_MPI_CUDA)
+#     enable_language(CUDA)
+#     find_package(MPI REQUIRED COMPONENTS C CXX)
+#     add_executable(img_seg_mpi_cuda
+#         src/mpi_cuda/main_mpi_cuda.cu   # placeholder
+#     )
+#     target_link_libraries(img_seg_mpi_cuda PRIVATE MPI::MPI_CXX common)
+#     set_target_properties(img_seg_mpi_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+# endif()
