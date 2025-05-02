@@ -1,0 +1,32 @@
+# CompileFlags:
+#   Add: [-nocudalib, -nocudainc]
+#   Remove: [-rdc=true]
+#
+# If:
+#   PathMatch: .*\.cu   # only tweak CUDA files
+# CompileFlags:
+#   # nuke nvcc-only stuff that real clang can’t understand
+#   Remove: [-rdc=true,
+#            -forward-unknown-to-host-compiler,
+#            -Xcompiler, -fPIE,
+#            '--generate-code=*',
+#            '--options-file']
+#   # tell clang these are CUDA files and where the toolkit lives
+#   Add:   [-xcuda,
+#          --cuda-gpu-arch=sm_52,          # adjust to your real arch
+#          --cuda-path=/usr/local/cuda]
+#   # use clang++ (not nvcc) to parse
+#   Compiler: /usr/bin/clang++
+
+If:
+  PathMatch: .*\.cu        # apply only to CUDA sources
+CompileFlags:
+  Remove: [-rdc=true,                # already there
+           -forward-unknown-to-host-compiler,
+           '--generate-code=*',
+           '-Xcompiler=*']           # ← NEW – wipes -Xcompiler=anything
+  Add:    [-xcuda,
+           --cuda-path=/usr/local/cuda,
+           --cuda-gpu-arch=sm_86]    # pick your real arch
+  Compiler: /usr/bin/clang++
+
