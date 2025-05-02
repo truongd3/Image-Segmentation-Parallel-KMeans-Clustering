@@ -9,6 +9,7 @@ project(image_segmentation          # <— call it whatever you like
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CUDA_ARCHITECTURES 50)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)          # <— gives clangd compile DB
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY  ${CMAKE_BINARY_DIR}/bin)
@@ -27,7 +28,7 @@ include_directories(SYSTEM
 )
 
 # ────────────────────────────── Build switches ───────────────────────────────
-option(BUILD_SERIAL    "CPU-only implementation"           ON)
+option(BUILD_SERIAL    "CPU-only implementation"           OFF)
 option(BUILD_CUDA      "Pure-CUDA implementation"          ON)
 option(BUILD_MPI       "MPI implementation"                OFF)
 option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  OFF)
@@ -53,11 +54,13 @@ endif()
 # ────────────────────────────── CUDA-only build ──────────────────────────────
 if(BUILD_CUDA)
     enable_language(CUDA)   # turns CUDA on only if we actually need it
-    add_executable(img_seg_cuda
-        src/cuda/main_cuda.cu
+    add_executable(img_seg_gpu
+        src/gpu/main_gpu.cpp
+        src/gpu/img_seg_gpu.cu
+        src/common/kmeans_utils.cpp
     )
-    target_link_libraries(img_seg_cuda PRIVATE common ${OpenCV_LIBS})
-    set_target_properties(img_seg_cuda PROPERTIES
+    target_link_libraries(img_seg_gpu PRIVATE common ${OpenCV_LIBS})
+    set_target_properties(img_seg_gpu PROPERTIES
         CUDA_SEPARABLE_COMPILATION ON
         POSITION_INDEPENDENT_CODE  ON
     )
