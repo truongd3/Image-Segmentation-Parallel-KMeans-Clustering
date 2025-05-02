@@ -3,14 +3,16 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+using namespace std;
+
 namespace image_utils {
 
-std::vector<cv::Vec3f> loadImage(const std::string& image_path,
-                                 cv::Mat& img_float, int& num_rows) {
+vector<cv::Vec3f> loadImage(const string &image_path,
+                                 cv::Mat &img_float, int &num_rows) {
     cv::Mat image = cv::imread(image_path);
     if (image.empty()) {
-        std::cerr << "Image Empty\n";
-        throw std::runtime_error("Failed to load image: " + image_path);
+        cerr << "Image Empty\n";
+        throw runtime_error("Failed to load image: " + image_path);
     }
     num_rows = image.rows;
 
@@ -19,7 +21,7 @@ std::vector<cv::Vec3f> loadImage(const std::string& image_path,
     image.convertTo(image_float, CV_32F);
     image_float = image_float.reshape(1, image.rows * image.cols);
 
-    std::vector<cv::Vec3f> pixels;
+    vector<cv::Vec3f> pixels;
     pixels.reserve(image_float.rows);
 
     for (int i = 0; i < image_float.rows; i++) {
