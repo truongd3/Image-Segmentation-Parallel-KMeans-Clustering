@@ -23,8 +23,6 @@ int main(int argc, char** argv) {
     std::vector<float> h_pixels = image_utils::flatten_image(img, N);
     std::vector<float> h_centroids(k * PIXEL_DIM);
 
-    
-
     std::vector<int> h_labels(N);
 
     gpu::img_seg_gpu(k, N, h_pixels, h_centroids, h_labels);

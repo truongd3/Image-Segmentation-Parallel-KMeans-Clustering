@@ -32,7 +32,7 @@ include_directories(SYSTEM
 option(BUILD_SERIAL    "CPU-only implementation"           OFF)
 option(BUILD_CUDA      "Pure-CUDA implementation"          ON)
 option(BUILD_MPI       "MPI implementation"                OFF)
-option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  OFF)
+option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  ON)
 
 
 # ────────────────────────────── Common helper library ────────────────────────
@@ -61,6 +61,7 @@ if(BUILD_CUDA)
     add_executable(img_seg_gpu
         src/gpu/main_gpu.cpp
         src/gpu/img_seg_gpu.cu
+        src/gpu/kmeans_kernels.cu
     )
     target_link_libraries(img_seg_gpu PRIVATE common ${OpenCV_LIBS})
     set_target_properties(img_seg_gpu PROPERTIES
@@ -71,7 +72,7 @@ endif()
 
 # ────────────────────────────── MPI build ────────────────────────────────────
 if(BUILD_MPI)
-    find_package(MPI REQUIRED COMPONENTS C CXX)
+    find_package(MPI REQUIRED COMPONENTS CXX)
     add_executable(img_seg_mpi
         src/mpi/main_mpi.cpp     
         src/mpi/img_seg_mpi.cpp
@@ -83,11 +84,13 @@ endif()
 # ────────────────────────────── MPI + CUDA build ─────────────────────────────
 if(BUILD_MPI_CUDA)
     enable_language(CUDA)
-    find_package(MPI REQUIRED COMPONENTS C CXX)
+    find_package(MPI REQUIRED COMPONENTS CXX)
     add_executable(img_seg_mpi_cuda
-        src/mpi_cuda/main_mpi_cuda.cu   # placeholder
+        src/mpi_gpu/main_mpi_gpu.cpp   
+        src/mpi_gpu/kmeans_mpi_gpu.cu
+        src/gpu/kmeans_kernels.cu
     )
-    target_link_libraries(img_seg_mpi_cuda PRIVATE MPI::MPI_CXX common)
+    target_link_libraries(img_seg_mpi_cuda PRIVATE MPI::MPI_CXX common ${OpenCV_LIBS})
     set_target_properties(img_seg_mpi_cuda PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 endif()
