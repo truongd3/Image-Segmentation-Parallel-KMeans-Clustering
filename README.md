@@ -4,10 +4,7 @@
 
 ## 🛠️ Building the Project
 
-1. **Make sure OpenCV is installed**  
-   Ensure OpenCV is installed on your system via your package manager (`apt`, `brew`, `vcpkg`, etc.), or build it from source.
-
-2. **Create a build directory and run CMake:**
+1. **Create a build directory and run CMake:**
 
    ```bash
    mkdir build
@@ -16,11 +13,14 @@
    cmake --build .
    ```
 
-3. **Run the executable**
-
-   - Serial version: `build/seg_cpu`  
-   - Usage:
+2. **Run the executable**
+   - Executables are located in build/bin folder
+   - **Serial version**: `build/bin/img_seg_serial`  
+   - **MPI Version**: `build/bin/img_seg_mpi`
+   - **CUDA Version**: `build/bin/img_seg_gpu`
+   - **MPI + CUDA Version**: `build/bin/img_seg_mpi_cuda`
+   - Usage: navigate to build/bin folder to find executables
 
      ```bash
-     ./seg_cpu <input-image> <num-clusters> <output-image>
+     ./<executable> <input-path> <num-clusters> <output-path>
      ```

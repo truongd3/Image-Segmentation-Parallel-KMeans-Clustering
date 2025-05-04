@@ -29,9 +29,9 @@ include_directories(SYSTEM
 )
 
 # ────────────────────────────── Build switches ───────────────────────────────
-option(BUILD_SERIAL    "CPU-only implementation"           OFF)
+option(BUILD_SERIAL    "CPU-only implementation"           ON)
 option(BUILD_CUDA      "Pure-CUDA implementation"          ON)
-option(BUILD_MPI       "MPI implementation"                OFF)
+option(BUILD_MPI       "MPI implementation"                ON)
 option(BUILD_MPI_CUDA  "Hybrid MPI + CUDA implementation"  ON)
 
 
