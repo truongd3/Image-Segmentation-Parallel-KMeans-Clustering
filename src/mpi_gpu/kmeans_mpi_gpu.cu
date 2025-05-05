@@ -20,7 +20,6 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
                     int my_rank, const vector<int>& lb_count,
                     const vector<int>& lb_displs) {
     float* d_pixels{};
-    float* d_centroids{};
     float* d_sums{};
     int* d_labels{};
     int* d_counts{};
@@ -107,7 +106,6 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
                 lb_displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
     cudaFree(d_pixels);
-    cudaFree(d_centroids);
     cudaFree(d_labels);
     cudaFree(d_sums);
     cudaFree(d_counts);
