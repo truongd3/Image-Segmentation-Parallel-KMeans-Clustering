@@ -81,7 +81,11 @@ mpirun -np <numprocs> ./<executable> <input-path> <num-clusters> <output-path>
 
 #### CUDA
 
+`./bin/img_seg_gpu ../db/input/dog48.jpg 5 ../db/output/output_dog48_cuda5.jpg`
 
+`./bin/img_seg_gpu ../db/input/cat2.jpg 5 ../db/output/output_cat2_cuda5.jpg`
+
+`./bin/img_seg_gpu ../db/input/dog35.jpg 7 ../db/output/output_dog35_cuda7.jpg`
 
 ## Technologies
 
