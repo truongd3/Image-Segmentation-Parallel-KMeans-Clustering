@@ -66,13 +66,13 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
 
         // Compute new centers and track maximum shift
         // double max_shift2 = 0.0;
-        // for (int j = 0; j < k; ++j) {
-        //     if (global_counts[j] > 0) new_centers[j] = global_sums[j] * (1.0f / global_counts[j]);
-        //     else new_centers[j] = centers[j];
+        for (int j = 0; j < k; ++j) {
+            if (global_counts[j] > 0) new_centers[j] = global_sums[j] * (1.0f / global_counts[j]);
+            else new_centers[j] = centers[j];
 
-        //     double shift = sqDist(centers[j], new_centers[j]);
-        //     if (shift > max_shift2) max_shift2 = shift;
-        // }
+            // double shift = sqDist(centers[j], new_centers[j]);
+            // if (shift > max_shift2) max_shift2 = shift;
+        }
 
         // Update centers
         centers = new_centers;

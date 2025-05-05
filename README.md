@@ -73,11 +73,14 @@ mpirun -np <numprocs> ./<executable> <input-path> <num-clusters> <output-path>
 
 #### MPI
 
-`./bin/img_seg_mpi ../db/input/dog48.jpg 5 ../db/output/output_dog48_mpi5.jpg`
+`mpirun -np 4 ./bin/img_seg_mpi ../db/input/dog48.jpg 5 ../db/output/output_dog48_mpi5.jpg`
 
-`./bin/img_seg_mpi ../db/input/cat2.jpg 5 ../db/output/output_cat2_mpi5.jpg`
+`mpirun -np 4 ./bin/img_seg_mpi ../db/input/cat2.jpg 5 ../db/output/output_cat2_mpi5.jpg`
 
-`./bin/img_seg_mpi ../db/input/dog35.jpg 7 ../db/output/output_dog35_mpi7.jpg`
+`mpirun -np 4 ./bin/img_seg_mpi ../db/input/dog35.jpg 7 ../db/output/output_dog35_mpi7.jpg`
+
+#### CUDA
+
 
 
 ## Technologies
