@@ -9,7 +9,7 @@
 - Truong Dang
 - [Dr. Andrew Sohn](https://web.njit.edu/~sohna)
 
-## Inspiration
+## 💭 Inspiration
 
 ### Why Image Segmentation?
 
@@ -46,8 +46,6 @@ cmake --build .
 - **MPI + CUDA version:** `./bin/img_seg_mpi_cuda`  
 
 > ℹ️ Navigate to the `build` folder to run the executables.
-
-#### ▶️ Usage
 
 **Serial & CUDA versions:**
 
@@ -95,7 +93,7 @@ mpirun -np <numprocs> <executable> <input-path> <num-clusters> <output-path>
 
 `mpirun -np 4 ./bin/img_seg_mpi_cuda ../db/input/dog35.jpg 7 ../db/output/output_dog35_hybrid7.jpg`
 
-## Technologies
+## 💻 Technologies
 
 - C++
 - MPI
