@@ -65,20 +65,20 @@ void Kmeans::fit(const vector<cv::Vec3f> &points, vector<int> &labels) {
         MPI_Allreduce(local_counts.data(), global_counts.data(), k, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
 
         // Compute new centers and track maximum shift
-        double max_shift2 = 0.0;
+        // double max_shift2 = 0.0;
         for (int j = 0; j < k; ++j) {
             if (global_counts[j] > 0) new_centers[j] = global_sums[j] * (1.0f / global_counts[j]);
             else new_centers[j] = centers[j];
 
-            double shift = sqDist(centers[j], new_centers[j]);
-            if (shift > max_shift2) max_shift2 = shift;
+            // double shift = sqDist(centers[j], new_centers[j]);
+            // if (shift > max_shift2) max_shift2 = shift;
         }
 
         // Update centers
         centers = new_centers;
         MPI_Bcast(centers.data(), k * 3, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
-        if (sqrt(max_shift2) < tol) break;
+        // if (sqrt(max_shift2) < tol) break;
     }
 
     // Gather final labels: each process has its subset in labels, others are -1

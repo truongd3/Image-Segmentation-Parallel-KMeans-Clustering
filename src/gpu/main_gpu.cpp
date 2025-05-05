@@ -5,28 +5,42 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 
+using namespace std;
+
 int main(int argc, char** argv) {
     if (argc < 4) {
-        std::cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>"
-                  << '\n';
+        cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>\n";
         return 1;
     }
-    std::string image_path = argv[1];
-    size_t k = std::stoi(argv[2]);
-    std::string output_path = argv[3];
+
+    string image_path = argv[1];
+    size_t k = stoi(argv[2]);
+    string output_path = argv[3];
 
     cv::Mat img = image_utils::load_float_image(image_path);
     size_t rows = img.rows;
     size_t cols = img.cols;
     size_t N = rows * cols;
 
-    std::vector<float> h_pixels = image_utils::flatten_image(img, N);
-    std::vector<float> h_centroids(k * PIXEL_DIM);
+    vector<float> h_pixels = image_utils::flatten_image(img, N);
+    vector<float> h_centroids(k * PIXEL_DIM);
 
-    std::vector<int> h_labels(N);
+    vector<int> h_labels(N);
 
+    cudaEvent_t start_time, end_time;
+    cudaEventCreate(&start_time);
+    cudaEventCreate(&end_time);
+
+    cudaEventRecord(start_time);
     gpu::img_seg_gpu(k, N, h_pixels, h_centroids, h_labels);
     image_utils::produce_image(rows, cols, h_labels, h_centroids, output_path);
+    cudaEventRecord(end_time);
+    cudaEventSynchronize(end_time);
+
+    float ms = 0.0f;
+    cudaEventElapsedTime(&ms, start_time, end_time);
+    double secs = ms / 1000.0;
+    cout << "CUDA version -> GPU kernel time: " << secs << " seconds\n";
 
     return 0;
 }
