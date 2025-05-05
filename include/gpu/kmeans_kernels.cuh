@@ -2,6 +2,8 @@
 #include "common/constants.hpp"
 #include <cfloat>
 
+extern __constant__ float constCentroids[MAX_K * PIXEL_DIM];
+
 __global__ void assign_clusters(int* labels, const float* pixels,
                                 const float* centroids, size_t N, size_t K);
 
@@ -9,10 +11,9 @@ __global__ void accumulate_clusters(const float* pixels, const int* labels,
                                     float* sums, int* counts, size_t N);
 
 template<int MAX_K>
-__global__ void assign_and_reduce(const float* __restrict__ pixels,
-                                  const float* __restrict__ centroids,
-                                  int* labels, float* sums, int* counts,
-                                  size_t N, size_t K) {
+__global__ void assign_and_reduce(const float* __restrict__ pixels, int* labels,
+                                  float* sums, int* counts, size_t N,
+                                  size_t K) {
     size_t tid = threadIdx.x;
     size_t bid = blockIdx.x;
     size_t tpb = blockDim.x;
@@ -40,10 +41,9 @@ __global__ void assign_and_reduce(const float* __restrict__ pixels,
     float best_d = FLT_MAX;
     int best_k = 0;
     for (int c = 0; c < K; ++c) {
-        const float* centroid = centroids + (c * PIXEL_DIM);
         float dist = 0.0F;
         for (int d = 0; d < PIXEL_DIM; ++d) {
-            float diff = px[d] - centroid[d];
+            float diff = px[d] - constCentroids[(c * PIXEL_DIM) + d];
             dist += diff * diff;
         }
         if (dist < best_d) {
