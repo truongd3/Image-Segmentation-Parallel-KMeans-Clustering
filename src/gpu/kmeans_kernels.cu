@@ -1,6 +1,7 @@
 #include "common/constants.hpp"
 #include "gpu/kmeans_kernels.cuh"
 #include <cfloat>
+#include <device_atomic_functions.h>
 
 /**
  * @brief CUDA kernel to assign cluster for each data point

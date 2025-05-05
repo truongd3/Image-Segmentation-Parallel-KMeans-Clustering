@@ -8,15 +8,14 @@ using namespace std;
 
 #define CHECK_CUDA(err)                                                        \
     if (err != cudaSuccess) {                                                  \
-        cerr << "CUDA error " << cudaGetErrorString(err) << " at "             \
-                  << __LINE__ << '\n';                                         \
+        cerr << "CUDA error " << cudaGetErrorString(err) << " at " << __LINE__ \
+             << '\n';                                                          \
         exit(1);                                                               \
     }
 
 void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
-                    vector<float>& h_centroids,
-                    vector<int>& all_labels, int my_rank,
-                    const vector<int>& lb_count,
+                    vector<float>& h_centroids, vector<int>& all_labels,
+                    int my_rank, const vector<int>& lb_count,
                     const vector<int>& lb_displs) {
     float* d_pixels{};
     float* d_centroids{};
@@ -37,8 +36,10 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
     CHECK_CUDA(cudaMalloc(&d_sums, d_sums_size));
     CHECK_CUDA(cudaMalloc(&d_counts, d_counts_size));
 
-    CHECK_CUDA(cudaMemcpy(d_pixels, h_pixels.data(), d_pixels_size, cudaMemcpyHostToDevice));
-    CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size, cudaMemcpyHostToDevice));
+    CHECK_CUDA(cudaMemcpy(d_pixels, h_pixels.data(), d_pixels_size,
+                          cudaMemcpyHostToDevice));
+    CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size,
+                          cudaMemcpyHostToDevice));
 
     dim3 blockDim(THREADS_PER_BLOCK);
     dim3 gridDim((N + blockDim.x - 1) / blockDim.x);
@@ -46,43 +47,52 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
     std::vector<float> h_sums(K * PIXEL_DIM);
     std::vector<int> h_counts(K);
     std::vector<int> h_labels(N);
+
+    size_t sharedBytes
+        = (MAX_K * PIXEL_DIM) * sizeof(float) + MAX_K * sizeof(int);
+
     for (int iter = 0; iter < MAX_ITERS; ++iter) {
-        // Assign labels to each data point
-        assign_clusters<<<gridDim, blockDim>>>(d_labels, d_pixels, d_centroids, N, K);
-
-        CHECK_CUDA(cudaDeviceSynchronize());
-
         // reset sums and counts for new interation
         CHECK_CUDA(cudaMemset(d_sums, 0, d_sums_size));
         CHECK_CUDA(cudaMemset(d_counts, 0, d_counts_size));
 
-        // compute sums and counts info
-        accumulate_clusters<<<gridDim, blockDim>>>(d_pixels, d_labels, d_sums, d_counts, N);
+        assign_and_reduce<MAX_K><<<gridDim, blockDim, sharedBytes>>>(
+            d_pixels, d_centroids, d_labels, d_sums, d_counts, N, K);
+
         CHECK_CUDA(cudaDeviceSynchronize());
 
-        CHECK_CUDA(cudaMemcpy(h_sums.data(), d_sums, d_sums_size, cudaMemcpyDeviceToHost));
-        CHECK_CUDA(cudaMemcpy(h_counts.data(), d_counts, d_counts_size, cudaMemcpyDeviceToHost));
+        CHECK_CUDA(cudaMemcpy(h_sums.data(), d_sums, d_sums_size,
+                              cudaMemcpyDeviceToHost));
+        CHECK_CUDA(cudaMemcpy(h_counts.data(), d_counts, d_counts_size,
+                              cudaMemcpyDeviceToHost));
 
         // compute global sums and counts
-        MPI_Allreduce(MPI_IN_PLACE, h_sums.data(), PIXEL_DIM * K, MPI_FLOAT, MPI_SUM, MPI_COMM_WORLD);
-        MPI_Allreduce(MPI_IN_PLACE, h_counts.data(), K, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE, h_sums.data(), PIXEL_DIM * K, MPI_FLOAT,
+                      MPI_SUM, MPI_COMM_WORLD);
+        MPI_Allreduce(MPI_IN_PLACE, h_counts.data(), K, MPI_INT, MPI_SUM,
+                      MPI_COMM_WORLD);
 
         // root find new centroids and broadcast to all ranks
         // bool converged = true;
         if (my_rank == 0) {
             for (int clus = 0; clus < K; ++clus) {
-                if (h_counts[clus] == 0) continue;
+                if (h_counts[clus] == 0)
+                    continue;
                 for (int d = 0; d < PIXEL_DIM; d++) {
-                    float new_clus_comp = h_sums[(clus * PIXEL_DIM) + d] / (float)h_counts[clus];
-                    // if (abs(new_clus_comp - h_centroids[(clus * PIXEL_DIM) + d]) > TOL) converged = false;
+                    float new_clus_comp = h_sums[(clus * PIXEL_DIM) + d]
+                                        / (float)h_counts[clus];
+                    // if (abs(new_clus_comp - h_centroids[(clus * PIXEL_DIM) +
+                    // d]) > TOL) converged = false;
                     h_centroids[(clus * PIXEL_DIM) + d] = new_clus_comp;
                 }
             }
         }
 
         // MPI_Bcast(&converged, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
-        MPI_Bcast(h_centroids.data(), PIXEL_DIM * K, MPI_FLOAT, 0, MPI_COMM_WORLD);
-        CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size, cudaMemcpyHostToDevice));
+        MPI_Bcast(h_centroids.data(), PIXEL_DIM * K, MPI_FLOAT, 0,
+                  MPI_COMM_WORLD);
+        CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size,
+                              cudaMemcpyHostToDevice));
 
         // if (converged) {
         //     cout << "Converged at iteration " << iter << "\n";
@@ -90,9 +100,11 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
         // }
     }
 
-    CHECK_CUDA(cudaMemcpy(h_labels.data(), d_labels, d_labels_size, cudaMemcpyDeviceToHost));
+    CHECK_CUDA(cudaMemcpy(h_labels.data(), d_labels, d_labels_size,
+                          cudaMemcpyDeviceToHost));
 
-    MPI_Gatherv(h_labels.data(), N, MPI_INT, all_labels.data(), lb_count.data(), lb_displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gatherv(h_labels.data(), N, MPI_INT, all_labels.data(), lb_count.data(),
+                lb_displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
     cudaFree(d_pixels);
     cudaFree(d_centroids);
