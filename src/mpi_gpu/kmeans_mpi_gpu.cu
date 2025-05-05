@@ -13,12 +13,13 @@ using namespace std;
         exit(1);                                                               \
     }
 
+__constant__ float constCentroids[MAX_K * PIXEL_DIM];
+
 void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
                     vector<float>& h_centroids, vector<int>& all_labels,
                     int my_rank, const vector<int>& lb_count,
                     const vector<int>& lb_displs) {
     float* d_pixels{};
-    float* d_centroids{};
     float* d_sums{};
     int* d_labels{};
     int* d_counts{};
@@ -31,15 +32,14 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
 
     // Allocate global mem for input arrays
     CHECK_CUDA(cudaMalloc(&d_pixels, d_pixels_size));
-    CHECK_CUDA(cudaMalloc(&d_centroids, d_centroids_size));
     CHECK_CUDA(cudaMalloc(&d_labels, d_labels_size));
     CHECK_CUDA(cudaMalloc(&d_sums, d_sums_size));
     CHECK_CUDA(cudaMalloc(&d_counts, d_counts_size));
 
     CHECK_CUDA(cudaMemcpy(d_pixels, h_pixels.data(), d_pixels_size,
                           cudaMemcpyHostToDevice));
-    CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size,
-                          cudaMemcpyHostToDevice));
+    CHECK_CUDA(cudaMemcpyToSymbol(constCentroids, h_centroids.data(),
+                                  d_centroids_size));
 
     dim3 blockDim(THREADS_PER_BLOCK);
     dim3 gridDim((N + blockDim.x - 1) / blockDim.x);
@@ -57,7 +57,7 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
         CHECK_CUDA(cudaMemset(d_counts, 0, d_counts_size));
 
         assign_and_reduce<MAX_K><<<gridDim, blockDim, sharedBytes>>>(
-            d_pixels, d_centroids, d_labels, d_sums, d_counts, N, K);
+            d_pixels, d_labels, d_sums, d_counts, N, K);
 
         CHECK_CUDA(cudaDeviceSynchronize());
 
@@ -91,9 +91,8 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
         // MPI_Bcast(&converged, 1, MPI_C_BOOL, 0, MPI_COMM_WORLD);
         MPI_Bcast(h_centroids.data(), PIXEL_DIM * K, MPI_FLOAT, 0,
                   MPI_COMM_WORLD);
-        CHECK_CUDA(cudaMemcpy(d_centroids, h_centroids.data(), d_centroids_size,
-                              cudaMemcpyHostToDevice));
-
+        CHECK_CUDA(cudaMemcpyToSymbol(constCentroids, h_centroids.data(),
+                                      d_centroids_size));
         // if (converged) {
         //     cout << "Converged at iteration " << iter << "\n";
         //     break;
@@ -107,7 +106,6 @@ void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
                 lb_displs.data(), MPI_INT, 0, MPI_COMM_WORLD);
 
     cudaFree(d_pixels);
-    cudaFree(d_centroids);
     cudaFree(d_labels);
     cudaFree(d_sums);
     cudaFree(d_counts);
