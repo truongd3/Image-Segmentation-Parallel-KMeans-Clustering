@@ -1,8 +1,6 @@
 #include "serial/kmeans.hpp"
 #include <limits>
 
-using namespace std;
-
 namespace serial {
 Kmeans::Kmeans(int num_clusters, int max_iterations, double tol)
     : k(num_clusters), max_iters(max_iterations), tol(tol) {}
@@ -12,7 +10,8 @@ double Kmeans::sqDist(const cv::Vec3f& a, const cv::Vec3f& b) {
     return diff.dot(diff);
 }
 
-void Kmeans::fit(const vector<cv::Vec3f>& points, vector<int>& labels) {
+void Kmeans::fit(const std::vector<cv::Vec3f>& points,
+                 std::vector<int>& labels) {
     size_t n_points = points.size();
     labels.resize(n_points, 0);
 
@@ -23,11 +22,11 @@ void Kmeans::fit(const vector<cv::Vec3f>& points, vector<int>& labels) {
     }
 
     for (int iter = 0; iter < max_iters; iter++) {
-        cout << "Iteration: " << iter << endl;
+        std::cout << "Iteration: " << iter << "\n";
         bool change = false;
         for (size_t i = 0; i < n_points; i++) {
             int best_cluster = 0;
-            double best_dist = numeric_limits<double>::max();
+            double best_dist = std::numeric_limits<double>::max();
             for (int j = 0; j < k; j++) {
                 double dist = sqDist(points[i], centers[j]);
                 if (dist < best_dist) {
@@ -43,8 +42,8 @@ void Kmeans::fit(const vector<cv::Vec3f>& points, vector<int>& labels) {
         }
 
         // Update
-        vector<cv::Vec3f> new_centers(k, cv::Vec3f(0, 0, 0));
-        vector<int> counts(k, 0);
+        std::vector<cv::Vec3f> new_centers(k, cv::Vec3f(0, 0, 0));
+        std::vector<int> counts(k, 0);
 
         for (size_t i = 0; i < n_points; i++) {
             int cur_cluster = labels[i];
@@ -73,6 +72,6 @@ void Kmeans::fit(const vector<cv::Vec3f>& points, vector<int>& labels) {
     }
 }
 
-const vector<cv::Vec3f>& Kmeans::getCenters() const { return centers; }
+const std::vector<cv::Vec3f>& Kmeans::getCenters() const { return centers; }
 
 } // namespace serial

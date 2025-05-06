@@ -4,21 +4,20 @@
 #include <mpi.h>
 #include <vector>
 
-using namespace std;
-
 #define CHECK_CUDA(err)                                                        \
     if (err != cudaSuccess) {                                                  \
-        cerr << "CUDA error " << cudaGetErrorString(err) << " at " << __LINE__ \
-             << '\n';                                                          \
+        std::cerr << "CUDA error " << cudaGetErrorString(err) << " at "        \
+                  << __LINE__ << '\n';                                         \
         exit(1);                                                               \
     }
 
 __constant__ float constCentroids[MAX_K * PIXEL_DIM];
 
-void kmeans_mpi_gpu(size_t K, size_t N, const vector<float>& h_pixels,
-                    vector<float>& h_centroids, vector<int>& all_labels,
-                    int my_rank, const vector<int>& lb_count,
-                    const vector<int>& lb_displs) {
+void kmeans_mpi_gpu(size_t K, size_t N, const std::vector<float>& h_pixels,
+                    std::vector<float>& h_centroids,
+                    std::vector<int>& all_labels, int my_rank,
+                    const std::vector<int>& lb_count,
+                    const std::vector<int>& lb_displs) {
     float* d_pixels{};
     float* d_sums{};
     int* d_labels{};

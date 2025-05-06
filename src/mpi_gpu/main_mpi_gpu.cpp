@@ -7,8 +7,6 @@
 #include <mpi.h>
 #include <opencv2/opencv.hpp>
 
-using namespace std;
-
 int main(int argc, char** argv) {
     MPI_Init(&argc, &argv);
     int rank{};
@@ -17,16 +15,17 @@ int main(int argc, char** argv) {
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     if (argc < 4) {
-        cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>\n";
+        std::cerr << "Usage: " << argv[0]
+                  << " <image_path> <k> <output_path>\n";
         MPI_Finalize();
         return 1;
     }
 
-    string image_path = argv[1];
-    size_t K = stoi(argv[2]);
-    string output_path = argv[3];
+    std::string image_path = argv[1];
+    size_t K = std::stoi(argv[2]);
+    std::string output_path = argv[3];
 
-    vector<float> h_pixels;
+    std::vector<float> h_pixels;
     int rows{};
     int cols{};
     int N{};
@@ -46,8 +45,9 @@ int main(int argc, char** argv) {
     N = rows * cols;
 
     // root init centroids and then broadcast to other ranks
-    vector<float> h_centroids(K * PIXEL_DIM);
-    if (rank == 0) kmeans_utils::init_centroids(h_pixels, h_centroids, N, K);
+    std::vector<float> h_centroids(K * PIXEL_DIM);
+    if (rank == 0)
+        kmeans_utils::init_centroids(h_pixels, h_centroids, N, K);
     MPI_Bcast(h_centroids.data(), PIXEL_DIM * K, MPI_FLOAT, 0, MPI_COMM_WORLD);
 
     // Scatter h_pixels to all ranks, each rank work is stored in h_local_pixels
@@ -55,10 +55,10 @@ int main(int argc, char** argv) {
     int rem = N % nprocs;
     int my_work = base + (rank < rem ? 1 : 0);
 
-    vector<int> elems_count(nprocs);
-    vector<int> displs(nprocs);
-    vector<int> lb_count(nprocs);
-    vector<int> lb_displs(nprocs);
+    std::vector<int> elems_count(nprocs);
+    std::vector<int> displs(nprocs);
+    std::vector<int> lb_count(nprocs);
+    std::vector<int> lb_displs(nprocs);
     for (int i = 0, offset = 0; i < nprocs; i++) {
         int cnt = base + (i < rem ? 1 : 0);
         elems_count[i] = cnt * 3;
@@ -67,24 +67,29 @@ int main(int argc, char** argv) {
         lb_displs[i] = offset;
         offset += cnt;
     }
-    vector<float> h_local_pixels(elems_count[rank]);
+    std::vector<float> h_local_pixels(elems_count[rank]);
     MPI_Scatterv(h_pixels.data(), elems_count.data(), displs.data(), MPI_FLOAT,
                  h_local_pixels.data(), elems_count[rank], MPI_FLOAT, 0,
                  MPI_COMM_WORLD);
 
     // kmeans routine
-    vector<int> all_labels(N);
+    std::vector<int> all_labels(N);
 
     // synchronize all ranks before timing
     MPI_Barrier(MPI_COMM_WORLD);
     double start_time = MPI_Wtime();
-    kmeans_mpi_gpu(K, my_work, h_local_pixels, h_centroids, all_labels, rank, lb_count, lb_displs);
-    if (rank == 0) image_utils::produce_image(rows, cols, all_labels, h_centroids, output_path);
+    kmeans_mpi_gpu(K, my_work, h_local_pixels, h_centroids, all_labels, rank,
+                   lb_count, lb_displs);
+    if (rank == 0)
+        image_utils::produce_image(rows, cols, all_labels, h_centroids,
+                                   output_path);
     // wait for everyone to finish
     MPI_Barrier(MPI_COMM_WORLD);
     double end_time = MPI_Wtime();
 
-    cout << "Hybrid version -> Rank #" << rank << " segmentation time: " << (end_time - start_time) << " seconds\n";
+    std::cout << "Hybrid version -> Rank #" << rank
+              << " segmentation time: " << (end_time - start_time)
+              << " seconds\n";
 
     MPI_Finalize();
 

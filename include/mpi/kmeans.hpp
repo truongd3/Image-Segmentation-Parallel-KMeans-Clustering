@@ -1,11 +1,8 @@
 #pragma once
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <random>
-#include <limits>
 #include <cmath>
 
-using namespace std;
 
 namespace mpi {
 inline constexpr int MAX_ITER = 100;
@@ -15,15 +12,15 @@ class Kmeans {
 public:
     Kmeans(int num_clusters, int max_iterations = MAX_ITER, double tol = TOL);
 
-    void fit(const vector<cv::Vec3f> &points, vector<int> &labels);
+    void fit(const std::vector<cv::Vec3f> &points, std::vector<int> &labels);
 
-    const vector<cv::Vec3f> &getCenters() const;
+    const std::vector<cv::Vec3f> &getCenters() const;
 
 private:
     int k;
     int max_iters;
     double tol;
-    vector<cv::Vec3f> centers;
+    std::vector<cv::Vec3f> centers;
 
     static double sqDist(const cv::Vec3f &a, const cv::Vec3f &b);
 };
