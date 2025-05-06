@@ -9,20 +9,18 @@
 #include <iostream>
 #include <vector>
 
-using namespace std;
-
 #define CHECK_CUDA(err)                                                        \
     if (err != cudaSuccess) {                                                  \
-        cerr << "CUDA error " << cudaGetErrorString(err) << " at " << __LINE__ \
-             << '\n';                                                          \
+        std::cerr << "CUDA error " << cudaGetErrorString(err) << " at "        \
+                  << __LINE__ << '\n';                                         \
         exit(1);                                                               \
     }
 
 __constant__ float constCentroids[MAX_K * PIXEL_DIM];
 
 namespace gpu {
-void img_seg_gpu(size_t K, size_t N, const vector<float>& h_pixels,
-                 vector<float>& h_centroids, vector<int>& h_labels) {
+void img_seg_gpu(size_t K, size_t N, const std::vector<float>& h_pixels,
+                 std::vector<float>& h_centroids, std::vector<int>& h_labels) {
 
     kmeans_utils::init_centroids(h_pixels, h_centroids, N, K);
 
@@ -50,8 +48,8 @@ void img_seg_gpu(size_t K, size_t N, const vector<float>& h_pixels,
     dim3 blockDim(THREADS_PER_BLOCK);
     dim3 gridDim((N + blockDim.x - 1) / blockDim.x);
 
-    vector<float> h_sums(K * PIXEL_DIM);
-    vector<int> h_counts(K);
+    std::vector<float> h_sums(K * PIXEL_DIM);
+    std::vector<int> h_counts(K);
 
     size_t sharedBytes
         = (MAX_K * PIXEL_DIM) * sizeof(float) + MAX_K * sizeof(int);
@@ -72,8 +70,9 @@ void img_seg_gpu(size_t K, size_t N, const vector<float>& h_pixels,
 
         // bool converged = true;
         for (int clus = 0; clus < K; clus++) {
-            if (h_counts[clus] == 0)
+            if (h_counts[clus] == 0) {
                 continue;
+            }
             for (int d = 0; d < PIXEL_DIM; d++) {
                 float new_clus_comp
                     = h_sums[(clus * PIXEL_DIM) + d] / (float)h_counts[clus];

@@ -1,23 +1,23 @@
 #include "mpi/img_seg_mpi.hpp"
+#include <ctime>
 #include <iostream>
 #include <mpi.h>
-#include <ctime>
 
-using namespace std;
-
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
     if (argc < 4) {
-        cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>" << '\n';
+        std::cerr << "Usage: " << argv[0] << " <image_path> <k> <output_path>"
+                  << '\n';
         return 1;
     }
 
     MPI_Init(&argc, &argv);
 
-    int rank;
+    int rank{};
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-    string image_path = argv[1], output_path = argv[3];
-    int k = stoi(argv[2]);
+    std::string image_path = argv[1];
+    std::string output_path = argv[3];
+    int k = std::stoi(argv[2]);
 
     // synchronize all ranks before we start timing
     MPI_Barrier(MPI_COMM_WORLD);
@@ -29,11 +29,13 @@ int main(int argc, char **argv) {
     double end_time = MPI_Wtime();
 
     if (success) {
-        cout << "Image segmentation completed successfully. Output saved to " << output_path << '\n';
+        std::cout << "Image segmentation completed successfully. Output saved to "
+             << output_path << '\n';
         double secs = end_time - start_time;
-        cout << "MPI version -> Rank #" << rank << " segmentation time: " << secs << " seconds\n";
+        std::cout << "MPI version -> Rank #" << rank
+             << " segmentation time: " << secs << " seconds\n";
     } else {
-        cerr << "Image segmentation failed." << '\n';
+        std::cerr << "Image segmentation failed." << '\n';
         return 1;
     }
 

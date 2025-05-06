@@ -27,7 +27,8 @@ int main(int argc, char** argv) {
 
     vector<int> h_labels(N);
 
-    cudaEvent_t start_time, end_time;
+    cudaEvent_t start_time{};
+    cudaEvent_t end_time{};
     cudaEventCreate(&start_time);
     cudaEventCreate(&end_time);
 
@@ -37,7 +38,7 @@ int main(int argc, char** argv) {
     cudaEventRecord(end_time);
     cudaEventSynchronize(end_time);
 
-    float ms = 0.0f;
+    float ms = 0.0F;
     cudaEventElapsedTime(&ms, start_time, end_time);
     double secs = ms / 1000.0;
     cout << "CUDA version -> GPU kernel time: " << secs << " seconds\n";

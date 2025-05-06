@@ -5,7 +5,6 @@ project(image_segmentation
         LANGUAGES CXX CUDA)         
 
 # ────────────────────────────── Global settings ──────────────────────────────
-# Make CMake put -I flags on the command-line instead of in a response file
 set(CMAKE_CUDA_USE_RESPONSE_FILE_FOR_INCLUDES OFF)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
