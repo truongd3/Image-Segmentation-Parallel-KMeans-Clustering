@@ -1,0 +1,6 @@
+Number of Processes,Segmentation Time of MPI,Segmentation Time of MPI & CUDA
+4,1.67873,0.480556
+8,0.959463,0.5190495
+10,1.202645,0.5690855
+12,1.03521,0.668151
+16,0.911605,0.722618
